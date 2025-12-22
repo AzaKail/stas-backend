@@ -1,0 +1,6 @@
+.\venv\Scripts\Activate.ps1
+
+
+git add .
+git commit -m "update backend"
+git push
