@@ -1,23 +1,27 @@
-from django.db.models import Min, Q
+from django.db.models import Min, Max, Q
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Product, Variant
+from .models import Product, Variant, Tag, Category
 from .serializers import ProductListSerializer, ProductDetailSerializer
+
 
 class ProductListView(generics.ListAPIView):
     serializer_class = ProductListSerializer
 
     def get_queryset(self):
-        qs = Product.objects.all()
+        # Показываем только видимые товары (если поле is_visible есть)
+        qs = Product.objects.filter(is_visible=True).select_related("category")
 
         q = self.request.query_params.get("q")
-        category = self.request.query_params.get("category")
+        category = self.request.query_params.get("category")  # ожидаем slug категории
         brand = self.request.query_params.get("brand")
 
         memories = self.request.query_params.getlist("memory")  # ?memory=256&memory=512
-        colors = self.request.query_params.getlist("color")     # ?color=Midnight...
+        colors = self.request.query_params.getlist("color")     # ?color=Midnight
+        tags = self.request.query_params.getlist("tag")         # ?tag=esim&tag=new
+
         price_min = self.request.query_params.get("price_min")
         price_max = self.request.query_params.get("price_max")
 
@@ -25,10 +29,13 @@ class ProductListView(generics.ListAPIView):
             qs = qs.filter(Q(title__icontains=q) | Q(description__icontains=q))
 
         if category:
-            qs = qs.filter(category=category)
+            qs = qs.filter(category__slug=category)
 
         if brand:
             qs = qs.filter(brand=brand)
+
+        if tags:
+            qs = qs.filter(tags__slug__in=tags)
 
         # фильтры по вариантам
         if memories:
@@ -43,7 +50,7 @@ class ProductListView(generics.ListAPIView):
         if price_max:
             qs = qs.filter(variants__price__lte=int(price_max))
 
-        # аннотация "цена от"
+        # "Цена от"
         qs = qs.annotate(min_price=Min("variants__price")).distinct().order_by("min_price")
         return qs
 
@@ -56,38 +63,61 @@ class ProductDetailView(generics.RetrieveAPIView):
 
 class FiltersView(APIView):
     """
-    Возвращает доступные значения фильтров в рамках категории/поиска.
+    Возвращает доступные значения фильтров.
     """
     def get(self, request):
-        category = request.query_params.get("category")
+        category = request.query_params.get("category")  # slug категории
         brand = request.query_params.get("brand")
 
-        variants = Variant.objects.select_related("product")
+        variants = Variant.objects.select_related("product", "product__category").filter(
+            product__is_visible=True
+        )
 
         if category:
-            variants = variants.filter(product__category=category)
+            variants = variants.filter(product__category__slug=category)
+
         if brand:
             variants = variants.filter(product__brand=brand)
 
         memories = list(
-            variants.exclude(memory_gb__isnull=True).order_by("memory_gb").values_list("memory_gb", flat=True).distinct()
+            variants.exclude(memory_gb__isnull=True)
+                    .order_by("memory_gb")
+                    .values_list("memory_gb", flat=True)
+                    .distinct()
         )
-        colors = list(
-            variants.exclude(color="").order_by("color").values_list("color", flat=True).distinct()
-        )
-        min_price = variants.aggregate(m=Min("price"))["m"] or 0
-        max_price = variants.aggregate(m=Min("price"))["m"] or 0  # поправим ниже
 
-        # max отдельно
-        from django.db.models import Max
+        colors = list(
+            variants.exclude(color="")
+                    .order_by("color")
+                    .values_list("color", flat=True)
+                    .distinct()
+        )
+
+        min_price = variants.aggregate(mn=Min("price"))["mn"] or 0
         max_price = variants.aggregate(mx=Max("price"))["mx"] or 0
 
-        categories = list(Product.objects.values_list("category", flat=True).distinct().order_by("category"))
-        brands = list(Product.objects.values_list("brand", flat=True).distinct().order_by("brand"))
+        # Категории лучше брать из таблицы Category
+        categories = list(
+            Category.objects.order_by("order", "title").values("title", "slug")
+        )
 
+        brands = list(
+            Product.objects.filter(is_visible=True)
+                   .values_list("brand", flat=True)
+                   .distinct()
+                   .order_by("brand")
+        )
+
+        # ✅ Вот так получаем список тегов
+        tags = list(
+            Tag.objects.order_by("title").values("title", "slug")
+        )
+
+        # ✅ И вот так добавляем их в Response
         return Response({
             "categories": categories,
             "brands": brands,
+            "tags": tags,  # <-- ВОТ ЭТО
             "memories": memories,
             "colors": colors,
             "price": {"min": min_price, "max": max_price},
