@@ -9,8 +9,10 @@
           <div class="side__title">Меню</div>
           <button class="icon-btn" @click="menuOpen = false">✕</button>
         </div>
-        <a class="side__link" href="/catalog">Каталог</a>
-        <a class="side__link" href="/admin" target="_blank">Админка</a>
+        <router-link class="side__link" to="/">Главная</router-link>
+        <router-link class="side__link" to="/catalog">Каталог</router-link>
+        <router-link class="side__link" to="/about">О нас</router-link>
+        <router-link class="side__link" to="/sell">Продать</router-link>
       </div>
     </div>
 
@@ -123,6 +125,16 @@ function go(p) {
 
 const pages = computed(() => Math.ceil((store.count || 0) / store.pageSize));
 
+const tagLabels = computed(() => {
+  const map = {};
+  (store.filtersMeta.tags || []).forEach((t) => {
+    const slug = t.slug || t;
+    const title = t.title || t;
+    if (slug) map[slug] = title;
+  });
+  return map;
+});
+
 const activeChips = computed(() => {
   const chips = [];
 
@@ -132,9 +144,14 @@ const activeChips = computed(() => {
   store.colors.forEach((c) =>
     chips.push({ key: "c" + c, label: c, remove: () => (store.colors = store.colors.filter(x => x !== c), store.loadProducts()) })
   );
-  store.tags.forEach((tg) =>
-    chips.push({ key: "t" + tg, label: `#${tg}`, remove: () => (store.tags = store.tags.filter(x => x !== tg), store.loadProducts()) })
-  );
+  store.tags.forEach((tg) => {
+    const label = tagLabels.value[tg] || tg;
+    chips.push({
+      key: "t" + tg,
+      label: `#${label}`,
+      remove: () => ((store.tags = store.tags.filter((x) => x !== tg)), store.loadProducts()),
+    });
+  });
 
   if (store.priceMin !== null || store.priceMax !== null) {
     chips.push({

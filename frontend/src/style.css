@@ -101,6 +101,11 @@ a{color:inherit;text-decoration:none}
   border-color:rgba(43,111,255,.3);
 }
 
+.chip.active{
+  background:rgba(43,111,255,.12);
+  border-color:rgba(43,111,255,.3);
+}
+
 .grid{
   display:grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -183,6 +188,70 @@ a{color:inherit;text-decoration:none}
 .price__now{font-size:26px;font-weight:900}
 .price__old{text-decoration:line-through;color:var(--muted)}
 .hr{border:none;border-top:1px solid var(--line);margin:14px 0}
+
+/* home page */
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0}
+.menu-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap:14px;
+  margin-top:12px;
+}
+.menu-card{
+  display:grid;
+  grid-template-columns:120px 1fr;
+  gap:12px;
+  text-align:left;
+  border-radius:18px;
+  border:1px solid var(--line);
+  background:var(--card);
+  padding:12px;
+  cursor:pointer;
+  transition: all .2s ease;
+}
+.menu-card__media{
+  background:var(--accent, #e5e7eb);
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:100px;
+}
+.menu-card__icon{font-size:34px}
+.menu-card__title{font-weight:800}
+.menu-card__text{color:var(--muted);margin-top:4px}
+.menu-card:hover{
+  background:#0f172a;
+  color:#fff;
+}
+.menu-card:hover .menu-card__text{color:rgba(255,255,255,.7)}
+
+.sell-cta{
+  margin:20px 0;
+  padding:18px;
+  border-radius:20px;
+  background:linear-gradient(120deg, rgba(43,111,255,.1), rgba(15,23,42,.02));
+  border:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+}
+@media (max-width: 720px){
+  .sell-cta{flex-direction:column;align-items:flex-start}
+}
+
+.sell-form{display:grid;gap:12px}
+.field{display:grid;gap:6px}
+.notice{
+  margin-top:12px;
+  padding:12px;
+  border-radius:14px;
+  border:1px dashed var(--line);
+  background:rgba(43,111,255,.08);
+}
+
+
 
 /* reveal animation */
 .reveal{opacity:0;transform: translateY(14px);transition:.4s ease}

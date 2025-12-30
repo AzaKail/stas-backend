@@ -8,8 +8,10 @@
           <div class="side__title">Меню</div>
           <button class="icon-btn" @click="menuOpen = false">✕</button>
         </div>
+        <router-link class="side__link" to="/">Главная</router-link>
         <router-link class="side__link" to="/catalog">Каталог</router-link>
-        <a class="side__link" href="/admin" target="_blank">Админка</a>
+        <router-link class="side__link" to="/about">О нас</router-link>
+        <router-link class="side__link" to="/sell">Продать</router-link>
       </div>
     </div>
 
@@ -39,6 +41,15 @@
             <span v-if="product.warranty"> · {{ product.warranty }}</span>
           </div>
           <p class="muted" v-if="product.description" style="line-height: 1.5;">{{ product.description }}</p>
+
+          <div class="filter-block" v-if="tags.length" style="padding-top:6px;">
+            <div class="label">Тэги</div>
+            <div class="chips">
+              <button class="chip" v-for="t in tags" :key="t.slug" @click="goToTag(t.slug)">
+                #{{ t.title }}
+              </button>
+            </div>
+          </div>
 
           <div class="filter-block" v-if="memories.length">
             <div class="label">Память</div>
@@ -117,6 +128,8 @@ import { computed, onMounted, ref, watch } from "vue";
 import HeaderBar from "../components/HeaderBar.vue";
 import { api, absMedia } from "../api";
 import { telegramBuyLink } from "../utils/telegram";
+import { useCatalogStore } from "../stores/catalog";
+import { useRouter } from "vue-router";
 
 const props = defineProps({
   slug: { type: String, required: true },
@@ -128,6 +141,8 @@ const product = ref(null);
 const loading = ref(true);
 const error = ref("");
 const menuOpen = ref(false);
+const router = useRouter();
+const catalogStore = useCatalogStore();
 
 const selectedMemory = ref(null);
 const selectedColor = ref("");
@@ -154,6 +169,12 @@ const filteredVariants = computed(() => {
     return matchMemory && matchColor;
   });
 });
+
+const tags = computed(() =>
+  (product.value?.tags || [])
+    .map((t) => (typeof t === "string" ? { slug: t, title: t } : { slug: t.slug || t.title, title: t.title || t.slug }))
+    .filter((t) => t.slug && t.title)
+);
 
 const selectedVariant = computed(() => {
   if (filteredVariants.value.length) return filteredVariants.value[0];
@@ -224,6 +245,12 @@ function selectMemory(m) {
 
 function selectColor(c) {
   selectedColor.value = c;
+}
+
+function goToTag(slug) {
+  catalogStore.tags = [slug];
+  catalogStore.page = 1;
+  router.push("/catalog");
 }
 
 function openBuyLink() {

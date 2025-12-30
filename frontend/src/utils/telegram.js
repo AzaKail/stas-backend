@@ -1,5 +1,5 @@
-export function telegramBuyLink({ managerUsername, productUrl, productTitle, variantText, price }) { //Нормальная ссылка в диалог к менеджеру по продажам.
-    const parts = [
+export function telegramBuyLink({ managerUsername, productUrl, productTitle, variantText, price }) {
+  const parts = [
     "Здравствуйте! Меня заинтересовал товар:",
     productTitle,
   ];
@@ -16,5 +16,6 @@ export function telegramBuyLink({ managerUsername, productUrl, productTitle, var
 
   const text = parts.filter(Boolean).join("\n");
 
+  // Надёжно открывается почти везде
   return `https://t.me/share/url?url=${encodeURIComponent(productUrl)}&text=${encodeURIComponent(text)}`;
 }

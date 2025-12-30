@@ -12,8 +12,8 @@ class ProductListView(generics.ListAPIView):
 
     def get_queryset(self):
         # Показываем только видимые товары (если поле is_visible есть)
-        qs = Product.objects.filter(is_visible=True).select_related("category")
-
+        qs = Product.objects.filter(is_visible=True).select_related("category").prefetch_related("tags", "variants")
+        
         q = self.request.query_params.get("q")
         category = self.request.query_params.get("category")  # ожидаем slug категории
         brand = self.request.query_params.get("brand")

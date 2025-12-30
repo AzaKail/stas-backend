@@ -6,13 +6,8 @@ This project contains a Django REST API (backend) and a Vue 3 + Vite SPA (fronte
 1. Create and activate a virtual environment (Python 3.11+ recommended):
    ```bash
    python -m venv .venv
-   source .venv/bin/
-   
-   
-   venv\Scripts\activate.
+   source .venv/bin/activate
    .\venv\Scripts\Activate.ps1
-
-
    ```
 2. Install dependencies:
    ```bash

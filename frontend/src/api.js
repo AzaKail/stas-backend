@@ -6,6 +6,18 @@ export const BACKEND_ORIGIN = import.meta.env.VITE_BACKEND_ORIGIN;
 export const api = axios.create({
   baseURL: API_BASE,
   withCredentials: false,
+  paramsSerializer: (params) => {
+    const search = new URLSearchParams();
+    Object.entries(params || {}).forEach(([key, value]) => {
+      if (value === undefined || value === null) return;
+      if (Array.isArray(value)) {
+        value.forEach((v) => search.append(key, v));
+      } else {
+        search.append(key, value);
+      }
+    });
+    return search.toString();
+  },
 });
 
 export function absMedia(url) {
