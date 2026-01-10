@@ -69,6 +69,13 @@ class FiltersView(APIView):
         category = request.query_params.get("category")  # slug категории
         brand = request.query_params.get("brand")
 
+        products = Product.objects.filter(is_visible=True)
+        if category:
+            products = products.filter(category__slug=category)
+
+        if brand:
+            products = products.filter(brand=brand)
+
         variants = Variant.objects.select_related("product", "product__category").filter(
             product__is_visible=True
         )
@@ -108,12 +115,15 @@ class FiltersView(APIView):
                    .order_by("brand")
         )
 
-        # ✅ Вот так получаем список тегов
+        # Получаем список тегов
         tags = list(
-            Tag.objects.order_by("title").values("title", "slug")
+            Tag.objects.filter(products__in=products)
+               .distinct()
+               .order_by("title")
+               .values("title", "slug")
         )
 
-        # ✅ И вот так добавляем их в Response
+        # Добавляем их в Response
         return Response({
             "categories": categories,
             "brands": brands,
