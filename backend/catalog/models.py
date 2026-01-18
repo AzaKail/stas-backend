@@ -15,6 +15,7 @@ class Category(models.Model):
 class Tag(models.Model):
     title = models.CharField(max_length=60, unique=True)
     slug = models.SlugField(unique=True)
+    group = models.CharField(max_length=80, blank=True, default="")
 
     def __str__(self):
         return self.title

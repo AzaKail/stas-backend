@@ -59,6 +59,13 @@ export const useCatalogStore = defineStore("catalog", {
       // если не задано, подхватим диапазон цен
       if (this.priceMin === null) this.priceMin = this.filtersMeta.price.min;
       if (this.priceMax === null) this.priceMax = this.filtersMeta.price.max;
+
+      if (this.priceMin < this.filtersMeta.price.min) this.priceMin = this.filtersMeta.price.min;
+      if (this.priceMax > this.filtersMeta.price.max) this.priceMax = this.filtersMeta.price.max;
+      if (this.priceMin > this.priceMax) {
+        this.priceMin = this.filtersMeta.price.min;
+        this.priceMax = this.filtersMeta.price.max;
+      }
     },
 
     async loadProducts() {

@@ -22,22 +22,39 @@
         </label>
       </div>
 
-      <div class="filter-block" v-if="meta.tags?.length">
+      <div class="filter-block" v-if="tagGroups.length">
         <div class="label">Тэги</div>
-        <label v-for="t in meta.tags" :key="t.slug || t" class="check">
-          <input type="checkbox" :value="t.slug || t" v-model="local.tags" />
-          <span>{{ t.title || t }}</span>
-        </label>
+        <div v-for="group in tagGroups" :key="group.title" class="tag-group">
+          <div class="label muted">{{ group.title }}</div>
+          <label v-for="t in group.items" :key="t.slug || t" class="check">
+            <input type="checkbox" :value="t.slug || t" v-model="local.tags" />
+            <span>{{ t.title || t }}</span>
+          </label>
+        </div>
       </div>
 
       <div class="filter-block">
         <div class="label">Цена</div>
         <div class="row">
-          <input class="input" type="number" v-model.number="local.priceMin" />
-          <input class="input" type="number" v-model.number="local.priceMax" />
+          <input class="input" type="number" :min="meta.price.min" :max="meta.price.max" v-model.number="local.priceMin" />
+          <input class="input" type="number" :min="meta.price.min" :max="meta.price.max" v-model.number="local.priceMax" />
         </div>
-        <input class="range" type="range" :min="meta.price.min" :max="meta.price.max" v-model.number="local.priceMin" />
-        <input class="range" type="range" :min="meta.price.min" :max="meta.price.max" v-model.number="local.priceMax" />
+        <input
+          class="range"
+          type="range"
+          :min="meta.price.min"
+          :max="meta.price.max"
+          v-model.number="local.priceMin"
+          @input="syncPriceRange('min')"
+        />
+        <input
+          class="range"
+          type="range"
+          :min="meta.price.min"
+          :max="meta.price.max"
+          v-model.number="local.priceMax"
+          @input="syncPriceRange('max')"
+        />
       </div>
 
       <div class="drawer__actions">
@@ -49,7 +66,7 @@
 </template>
 
 <script setup>
-import { reactive, watch } from "vue";
+import { computed, reactive, watch } from "vue";
 
 const props = defineProps({
   open: Boolean,
@@ -67,6 +84,17 @@ const local = reactive({
   priceMax: 0,
 });
 
+const tagGroups = computed(() => {
+  const groups = new Map();
+  (props.meta.tags || []).forEach((tag) => {
+    const normalized = typeof tag === "string" ? { slug: tag, title: tag, group: "Прочее" } : tag;
+    const group = normalized.group || "Прочее";
+    if (!groups.has(group)) groups.set(group, []);
+    groups.get(group).push(normalized);
+  });
+  return Array.from(groups.entries()).map(([title, items]) => ({ title, items }));
+});
+
 watch(
   () => props.value,
   (v) => {
@@ -79,6 +107,27 @@ watch(
   { immediate: true, deep: true }
 );
 
+function clampPrice(value) {
+  const min = props.meta.price.min ?? 0;
+  const max = props.meta.price.max ?? 0;
+  return Math.min(Math.max(value, min), max);
+}
+
+function syncPriceRange(changed) {
+  local.priceMin = clampPrice(local.priceMin ?? props.meta.price.min);
+  local.priceMax = clampPrice(local.priceMax ?? props.meta.price.max);
+  if (local.priceMin > local.priceMax) {
+    if (changed === "min") {
+      local.priceMax = local.priceMin;
+    } else if (changed === "max") {
+      local.priceMin = local.priceMax;
+    } else {
+      const temp = local.priceMin;
+      local.priceMin = local.priceMax;
+      local.priceMax = temp;
+    }
+  }
+}
 function apply() {
   emit("apply", { ...local });
   emit("close");

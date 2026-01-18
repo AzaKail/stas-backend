@@ -120,7 +120,7 @@ class FiltersView(APIView):
             Tag.objects.filter(products__in=products)
                .distinct()
                .order_by("title")
-               .values("title", "slug")
+               .values("title", "slug", "group")
         )
 
         # Добавляем их в Response

@@ -9,7 +9,7 @@ class VariantSerializer(serializers.ModelSerializer):
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ["slug", "title"]
+        fields = ["slug", "title", "group"]
 
 class ProductListSerializer(serializers.ModelSerializer):
     min_price = serializers.IntegerField()
@@ -24,4 +24,3 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ["id", "title", "slug", "category", "brand", "description", "warranty", "cover", "variants", "tags"]
-

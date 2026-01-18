@@ -17,8 +17,9 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ("title", "slug")
-    search_fields = ("title", "slug")
+    list_display = ("title", "slug", "group")
+    list_filter = ("group",)
+    search_fields = ("title", "slug", "group")
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):

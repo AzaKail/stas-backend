@@ -6,4 +6,8 @@ git commit -m "update backend"
 git push
 
 
+python backend/manage.py runserver
+python frontendnpm run dev -- --host
+
 http://localhost:5173/
+http://127.0.0.1:8000/admin/

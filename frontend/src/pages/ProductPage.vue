@@ -111,11 +111,17 @@
           <div>
             <div class="label">Варианты</div>
             <div class="muted small" v-if="!product.variants.length">Для товара пока нет вариантов.</div>
-            <ul v-else class="muted small">
-              <li v-for="v in product.variants" :key="v.id">
-                {{ variantLabel(v) }} — {{ v.in_stock ? "в наличии" : "нет в наличии" }}
-              </li>
-            </ul>
+            <div v-else class="chips">
+              <button
+                v-for="v in product.variants"
+                :key="v.id"
+                class="chip"
+                :class="{ active: isVariantSelected(v) }"
+                @click="selectVariant(v)"
+              >
+                {{ variantLabel(v) }} · {{ v.in_stock ? "в наличии" : "нет в наличии" }}
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -251,6 +257,15 @@ function goToTag(slug) {
   catalogStore.tags = [slug];
   catalogStore.page = 1;
   router.push("/catalog");
+}
+
+function selectVariant(v) {
+  selectedMemory.value = v.memory_gb || null;
+  selectedColor.value = v.color || "";
+}
+
+function isVariantSelected(v) {
+  return (v.memory_gb || null) === selectedMemory.value && (v.color || "") === selectedColor.value;
 }
 
 function openBuyLink() {
