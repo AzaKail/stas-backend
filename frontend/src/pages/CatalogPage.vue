@@ -33,6 +33,7 @@
             @input="debouncedSearch"
           />
           <button class="btn" @click="filtersOpen = true">Фильтры</button>
+          <button class="btn btn--ghost" @click="refresh">Обновить</button>
           <button class="btn btn--ghost" @click="resetAll">Сброс</button>
         </div>
 
@@ -115,6 +116,10 @@ function applyFilters(v) {
 
 function resetAll() {
   store.resetFilters();
+  store.loadProducts();
+}
+
+function refresh() {
   store.loadProducts();
 }
 
